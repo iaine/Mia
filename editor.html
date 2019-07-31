@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Editor</title>
+    <style type="text/css" media="screen">
+        #editor {
+            position: absolute;
+            top: 10%;
+            right:25%;
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+<div onmouseover="cd()">Run Me</div>
+<div id="editor">source = "json enmi185.json";
+    pipeline = [{"func":"filterStrs", "args": "++"}, {"func":"filterStrs", "args": "--"}, {"func":"findIntervals", "args": "begin"}];
+    sound = 'simple';
+    notes = [];
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.1/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/javascript");
+</script>
+
+<script src="mia.js" type="application/javascript"></script>
+<script>
+    function cd() {
+        console.log('in');
+        var threadWorker = new Worker('mia.js');
+
+        threadWorker.postMessage([editor.getValue()]);
+    }
+    /*let programme = {};
+    programme["source"] = 'json enmi185.json';
+    programme["pipeline"] = [{'name':getName}, {'name':uppercase, 'args': "kitten"}, {'name':get6Characters}, {'name':reverse}];
+    programme['sound'] = 'simple';*?
+
+     */
+
+
+    //console.log(pipe(programme.pipeline)({ name: programme.source }));
+</script>
+
+</body>
+</html>
