@@ -10,6 +10,14 @@
  */
 let envelope = [];
 
+/**
+ * Set base variables
+ * @type {number}
+ */
+envelope.FREQ = 234.68;
+envelope.GAIN = 0.5;
+envelope.DUR = 0.5;
+
 /* Error handling */
 
 /**
@@ -195,8 +203,6 @@ mapGeoJsons = (data) => {
     return data;
 };
 
-
-
 /**
  * Function to get the position from the
  * @param data
@@ -208,8 +214,22 @@ mapPosition = (data, type) => {
     }
 };
 
+heatmap = (data) => {
+    let item = JSON.parse(data);
+
+    //a bit hacky but listen for anything that isn't a URL
+    if (item['body']['type'].indexOf('/') < 0) {
+        //@todo: remove audioCtx.
+        let audioCx = new AudioContext();
+        return {freq: envelope.FREQ, dur: envelope.DUR, gain: envelope.GAIN, pos: item['body']['value'], idx: audioCx.currentTime};
+    }
+};
+
+
 /**
- * Function to play
+ * Function to play.
+ *
+ * Acts as a wrapper for the Note interface
  *
  * @param _note
  * @param noteType
