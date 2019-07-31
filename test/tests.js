@@ -10,5 +10,13 @@ QUnit.test( "Heatmap", function( assert ) {
 
 QUnit.test( "Nontouch won't return in heatmap", function( assert ) {
     let heat = heatmap(mockUrlData);
-    assert.ok( heat !== {"freq":234.68,"dur":0.5,"gain":0.5,"pos":{"x":123,"y":456,"z":100},"idx":1}, "Passed!" );
+    assert.notOk( heat === {"freq":234.68,"dur":0.5,"gain":0.5,"pos":{"x":123,"y":456,"z":100},"idx":1}, "Passed!" );
+});
+
+QUnit.test( "Connect to Server Side Events", function( assert ) {
+    let connection = source('sse', [], []);
+    assert.throws(connection, Error, "No location throws an error");
+
+    connection = source('sse', 'http://127.0.0.1:3000/sse', []);
+    assert.ok(connection, "Location found");
 });
