@@ -1,0 +1,15 @@
+@startuml
+User -> LiveEdit: Shows Edit View
+User -> LiveEdit: Create Programme
+LiveEdit --> LiveEdit: Check Syntax
+User -> LiveEdit: Plays Programme
+LiveEdit --> Parser: Create ParseTree
+Parser -> Language: Run Programme
+alt [error]
+Parser -> User: Error notification
+else
+Language -> Data: Connect to DataSource
+Language <- Data: Sends Data
+Language -> Language: Handle Data with Programme
+end
+@enduml
