@@ -4,6 +4,8 @@
  * @author: Iain Emsley
  */
 
+var audioCtx;
+
 /**
  *  Empty envelope for temp variable handling
  *  @type {Array}
@@ -294,40 +296,74 @@ pipe = (...[functions]) => (value) => {
 
 //Web Worker thread
 onmessage = function(e) {
-    console.info(e);
-  compile(e.data[0]);
+  evaluate(parse(e.data[0]));
+};
+/**
+ * Handles turning the first word into a string and tidying it up
+ * @param keyString
+ * @returns {string}
+ */
+keywordToString = (keyString) => {
+    return keyString.toString().trim()
 };
 /**
  *  Method to split the code and send to evaluation
  */
-var compile = function (code) {
-
+var parse = function (code) {
+    //audioCtx = new AudioContext();
+    //audioCtx.resume();
     try {
-        //var code = _code;
 
         let tmpcode = code.trim().split("\n");
         let programme =  {};
         tmpcode.forEach(ln => {
+            //split lines into the
             let spln = ln.split('=');
-            if (spln[0].toString().trim() === "pipeline") {
-                let _tmp = spln[1].replace(';','').trim();
-                programme[spln[0].trim()] = JSON.parse(_tmp);
-            } else {
-                if (spln[0].trim() === 'source') {
-                    let _t = spln[1].replace(';', '').replace('"', '').trim();
-                    programme[spln[0].trim()] = _t.split(' ');
-                } else {
-                    programme[spln[0].trim()] = spln[1].replace(';', '').trim();
-                }
+            const keyword = keywordToString(spln[0]);
+            spln[1] = spln[1].replace(';', '').trim();
+            let splt = spln[1].split(' ');
+            //language here is CS oriented. Make it humanistic?
+            switch(keyword) {
+                case 'pipeline':
+                    //initialise as an array
+                    programme[keyword] = [];
+                    //if written in pipe style on one line ( pipeline = x 123| y 2234;)
+                    if (spln[1].indexOf('|') > 1) {
+                        //split on the pipe operator
+                        let _tmp = spln[1].replace(/\"/g, '').split('|');
+                        _tmp.forEach(t => {
+                            const splitt = t.split(' ');
+                            programme[keyword].push({"func": splitt[0], "args": splitt.splice(1)})
+                        });
+                    }
+                    break;
+                case 'source' :
+                    //a thought: put into programme structure and evaluate can call itself?
+                    let _t = spln[1].replace(/"/g, '').trim();
+                    programme[keyword] = _t.split(' ');
+                    break;
+                case 'defNote':
+                case 'defFunc':
+                    // make these into an array or handle differently?
+                    // perhaps make giant array and parse first?
+                    // check on the function for some sanity?
+                    programme[keyword] = {"func": keyword, "args": [ splt[0],splt.splice(1).join('')]};
+                    break;
+                case 'sound':
+                    programme[keyword] = {"func": splt[0], "args": ""};
+                    break;
+                default:
+                    console.log('Unknown key :' + keyword + ' but we bypass it.');
+                    break;
             }
         });
 
         //todo: consider if returns are caught and printed to screen
         // existing thought goes with not yet. Concentrating on audio
-        evaluate(programme);
-        //console.log(pipe(programme.pipeline)({ name: programme.source }));
+        return programme;
     } catch (err) {
-        console.log(err);
+        console.log(err.message);
+        console.log(err.stackTrace);
     }
 };
 
