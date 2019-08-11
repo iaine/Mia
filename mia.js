@@ -227,6 +227,85 @@ heatmap = (data) => {
     }
 };
 
+/**
+ * Function to get the word position of a tag and use pan / frequency as marker
+ *
+ * @todo: can this be spatialised using the count?
+ * @param data - data to be searched.
+ * @param term - terms to search.
+ * @param stringLength - length of the string.
+ */
+wordPosition = (data, term, stringLength) => {
+
+    const twitter_length = stringLength;
+    const midPoint = twitter_length/2;
+    let search = term + "\\b";
+    let regex = new RegExp(search);
+    const stringpos = data.search(regex);
+    if (stringpos > -1) {
+        let pos = stringpos < midPoint ? -(1 - stringpos / twitter_length) :
+            stringpos / twitter_length;
+        let temp = Math.floor(stringpos / 10);
+        let interval = calculateNewNote(261.25, temp);
+
+        //set the note object
+        data.freq = {freq: interval, dur: envelope.DUR, gain: temp, pos: pos, idx: audioCtx.currentTime};
+    }
+
+    return data;
+};
+
+/**
+ * Filter by pattern. Based on macroanalysis
+ */
+findPattern = (data, term, note={}) => {
+    let search = term;
+    if (data.indexOf(term) > -1) {
+        //set the note object
+        data.freq = (note) ? note :
+            {freq: 340.56, dur: envelope.DUR, gain: envelope.GAIN, pos: {}, idx: audioCtx.currentTime};
+    }
+    return data;
+};
+
+/**
+ * Filter by pattern. Based on macroanalysis
+ */
+findPatterns = (data, term, note={}) => {
+    data.forEach(d => findPattern(d, term));
+};
+
+/**
+ * Function to convert the search pattern into a regex
+ * @param stringPattern
+ * @returns {string}
+ */
+buildPattern = (stringPattern) => {
+    const strArr = stringPattern.split(" ");
+
+    let searchStr = '';
+
+    strArr.forEach(token => {
+        switch (token) {
+            case '{WORD}':
+                searchStr += '\\s?\\W+(?:\\w+\\W+)?';
+                break;
+            case '{NUMBER}':
+                searchStr += '\\s?\\W+(?:\\d+\\D+)?';
+                break;
+            case '{PATTERN':
+                token.replace('OR', '|');
+                token.replace('{PATTERN', '(');
+                token.replace('}', ')');
+                searchStr += token;
+                break;
+            default:
+                searchStr += token + " ";
+
+        }
+    });
+    return searchStr;
+};
 
 /**
  * Function to play.
